@@ -38,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}-static
-          path: target/${{ matrix.target }}/release/YOUR_APP_NAME.exe
+          path: target/${{ matrix.target }}/release/
