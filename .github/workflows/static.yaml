@@ -1,0 +1,50 @@
+name: win32-static-build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [ i686-pc-windows-msvc, i686-pc-windows-gnu ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build (release)
+        run: cargo build --release --target ${{ matrix.target }} --verbose 
+
+      - name: Verify static runtime
+        shell: pwsh
+        run: |
+          $exe="target\${{ matrix.target }}\release\YOUR_APP_NAME.exe"
+          if (!(Test-Path $exe)) { Write-Error "Executable not found: $exe"; exit 1 }
+          $bad = dumpbin /dependents $exe | Select-String -Pattern "ucrtbase|vcruntime|msvcp|libgcc|libstdc|libwinpthread"
+          if ($bad) { Write-Error "Found dynamic runtime deps:`n$bad"; exit 1 }
+          Write-Host "Static runtime check passed."
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}-static
+          path: target/${{ matrix.target }}/release/YOUR_APP_NAME.exe
