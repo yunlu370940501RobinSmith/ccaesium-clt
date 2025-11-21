@@ -1,6 +1,9 @@
 # Static linking configuration for Windows targets
 [target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = [
+  "-C", "target-feature=+crt-static"，
+  "-C","link-args=/SUBSYSTEM:CONSOLE,5.01"
+]
 
 [target.i686-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]
