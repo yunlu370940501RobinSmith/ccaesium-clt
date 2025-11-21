@@ -50,11 +50,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build
-        uses: clechasseur/rs-cargo@v2
-        with:
-          use-cross: true
-          command: build
-          args: --verbose --release --target ${{ matrix.target }}
+        run: cargo build --verbose --release --target ${{ matrix.target }}
 
       - name: Build archive
         shell: bash
