@@ -22,8 +22,8 @@ jobs:
       matrix:
         # You can add more, for any target you'd like!
         # To disable a build target, simply comment out the corresponding lines with #
-        # For example, to disable Linux ARM builds, comment out lines 28-30
-        # To disable all macOS builds, comment out lines 32-37
+        # For example, to disable Linux ARM builds, comment out the 'linux arm64' entry below
+        # To disable all macOS builds, comment out both 'macos x86' and 'macos arm64' entries
         include:
           - build: linux x86
             os: ubuntu-latest

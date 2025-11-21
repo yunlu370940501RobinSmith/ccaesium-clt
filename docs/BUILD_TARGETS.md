@@ -64,7 +64,7 @@ To re-enable it, uncomment the following lines in `.github/workflows/release.yml
 
 ## Updating Release Notes
 
-When you disable a build target, remember to also update the release body table in the workflow file (around line 114) to remove the corresponding entry. This ensures users don't see references to builds that are no longer created.
+When you disable a build target, remember to also update the release body table in the workflow file (in the "Release" step) to remove the corresponding entry. This ensures users don't see references to builds that are no longer created.
 
 Example:
 ```yaml
