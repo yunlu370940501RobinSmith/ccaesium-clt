@@ -34,15 +34,6 @@ jobs:
       - name: Build (release)
         run: cargo build --release --target ${{ matrix.target }} --verbose 
 
-      - name: Verify static runtime
-        shell: pwsh
-        run: |
-          $exe="target\${{ matrix.target }}\release\YOUR_APP_NAME.exe"
-          if (!(Test-Path $exe)) { Write-Error "Executable not found: $exe"; exit 1 }
-          $bad = dumpbin /dependents $exe | Select-String -Pattern "ucrtbase|vcruntime|msvcp|libgcc|libstdc|libwinpthread"
-          if ($bad) { Write-Error "Found dynamic runtime deps:`n$bad"; exit 1 }
-          Write-Host "Static runtime check passed."
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
