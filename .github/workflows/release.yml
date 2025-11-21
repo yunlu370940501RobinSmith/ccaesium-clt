@@ -32,7 +32,11 @@ jobs:
 
       - name: Get the release version from the tag
         shell: bash
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          # Replace slashes with dashes for non-tag refs (e.g., refs/heads/main)
+          VERSION="${VERSION//\//-}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Install Rust
         # Or @nightly if you want
