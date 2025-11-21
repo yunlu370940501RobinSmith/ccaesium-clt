@@ -6,4 +6,4 @@ rustflags = ["-C", "target-feature=+crt-static"]
 rustflags = ["-C", "target-feature=+crt-static"]
 
 [target.i686-pc-windows-gnu]
-rustflags = ["-C", "link-args=-static"]
+rustflags = ["-C", "link-arg=-static"]
