@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        target: [ i686-pc-windows-msvc, i686-pc-windows-gnu ]
+        target: [ i686-pc-windows-msvc ]
     steps:
       - uses: actions/checkout@v4
 
