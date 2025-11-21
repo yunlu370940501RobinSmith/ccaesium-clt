@@ -39,6 +39,9 @@ jobs:
           - build: win x86
             os: windows-latest
             target: x86_64-pc-windows-msvc
+          - build: win x86_32
+            os: windows-latest
+            target: i686-pc-windows-msvc
           # - build: win arm64
           #   os: windows-latest
           #   target: aarch64-pc-windows-msvc
@@ -109,6 +112,7 @@ jobs:
           |Linux ARM| caesiumclt-v*-aarch64-unknown-linux-musl.tar.gz|
           |Linux x86_64| caesiumclt-v*-x86_64-unknown-linux-musl.tar.gz|
           |Windows x86_64| caesiumclt-v*-x86_64-pc-windows-msvc.zip|
+          |Windows x86_32| caesiumclt-v*-i686-pc-windows-msvc.zip|
           "
 
       - name: Upload Artifact 🚀
