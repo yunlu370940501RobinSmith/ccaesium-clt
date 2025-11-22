@@ -1,0 +1,113 @@
+name: Rust Win7 static (mingw x86/x64)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            target: x86_64-pc-windows-gnu
+            gcc_pkg: mingw-w64-x86_64-toolchain
+          - arch: i686
+            target: i686-pc-windows-gnu
+            gcc_pkg: mingw-w64-i686-toolchain
+    env:
+      RUSTUP_TOOLCHAIN: 1.75.0
+      WINVER_HEX: 0x0601   # Windows 7
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust 1.75.0
+        run: |
+          rustup toolchain install %RUSTUP_TOOLCHAIN%
+          rustup default %RUSTUP_TOOLCHAIN%
+          rustup target add ${{ matrix.target }} --toolchain %RUSTUP_TOOLCHAIN%
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            ${{ matrix.gcc_pkg }}
+            mingw-w64-${{ matrix.arch }}-cmake
+            mingw-w64-${{ matrix.arch }}-pkgconf
+
+      - name: Prepare static env
+        shell: bash
+        run: |
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            export MINGW_PREFIX=/c/msys64/mingw64
+          else
+            export MINGW_PREFIX=/c/msys64/mingw32
+          fi
+          echo "PATH=$MINGW_PREFIX/bin:$PATH" >> $GITHUB_ENV
+          # RUSTFLAGS:
+          # 1. crt-static 打开
+          # 2. -static 全局静态链接 libgcc/libstdc++
+          # 3. -Wl,--major-subsystem-version/--minor-subsystem-version 设定最低子系统版本(6.01 = Win7)
+          # 4. 定义 _WIN32_WINNT=0x0601 方便 C 依赖或 build.rs 使用
+          echo "RUSTFLAGS=-C target-feature=+crt-static -C link-arg=-static -C link-arg=-Wl,--major-subsystem-version=6,--minor-subsystem-version=1 -C link-arg=-s --cfg win7 -C link-arg=-Wl,--disable-runtime-pseudo-reloc" >> $GITHUB_ENV
+          echo "CFLAGS=-D_WIN32_WINNT=${WINVER_HEX} -DWINVER=${WINVER_HEX}" >> $GITHUB_ENV
+          echo "CC=${{ matrix.arch }}-w64-mingw32-gcc" >> $GITHUB_ENV
+
+      - name: (可选) 生成自定义 target JSON
+        shell: bash
+        run: |
+          cat > win7-${{ matrix.arch }}.json <<EOF
+          {
+            "llvm-target": "${{ matrix.arch }}-pc-windows-gnu",
+            "arch": "${{ matrix.arch }}",
+            "os": "windows",
+            "vendor": "pc",
+            "linker-flavor": "gcc",
+            "linker": "${{ matrix.arch }}-w64-mingw32-gcc",
+            "executables": true,
+            "crt-static-default": true,
+            "has-elf-tls": false,
+            "disable-redzone": false,
+            "panic-strategy": "unwind",
+            "supported-sanitizers": [],
+            "target-family": ["windows"],
+            "target-endian": "little",
+            "target-pointer-width": "${{ matrix.arch == 'x86_64' && '64' || '32' }}",
+            "target-c-int-width": "32",
+            "abi": "cdecl"
+          }
+          EOF
+          echo "CUSTOM_TARGET=win7-${{ matrix.arch }}.json" >> $GITHUB_ENV
+
+      - name: Build release (static)
+        shell: bash
+        run: |
+          # 使用官方三元组或自定义 JSON 任选其一：
+          # cargo build --release --target ${{ matrix.target }}
+          cargo build --release --target $CUSTOM_TARGET
+
+      - name: Strip
+        shell: bash
+        run: |
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            PREFIX=/c/msys64/mingw64
+          else
+            PREFIX=/c/msys64/mingw32
+          fi
+          $PREFIX/bin/strip target/$CUSTOM_TARGET/release/*.exe || true
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp target/$CUSTOM_TARGET/release/*.exe artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+            name: win7-static-${{ matrix.target }}
+            path: artifacts
