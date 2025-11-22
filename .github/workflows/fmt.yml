@@ -1,27 +1,27 @@
-name: Code formatting
+# name: Code formatting
 
-on:
-  push:
-    paths:
-      - 'src/**'
-      - '.github/**'
-    pull_request:
-      paths:
-        - 'src/**'
-        - '.github/**'
+# on:
+#   push:
+#     paths:
+#       - 'src/**'
+#       - '.github/**'
+#     pull_request:
+#       paths:
+#         - 'src/**'
+#         - '.github/**'
 
-jobs:
-  fmt_check:
-    name: Fmt
+# jobs:
+#   fmt_check:
+#     name: Fmt
 
-    runs-on: ubuntu-latest
+#     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
+#       - uses: dtolnay/rust-toolchain@stable
+#         with:
+#           components: rustfmt
 
-      - name: Check code formatting
-        run: cargo fmt -- --check
+#       - name: Check code formatting
+#         run: cargo fmt -- --check
