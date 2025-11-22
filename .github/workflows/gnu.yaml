@@ -1,31 +1,31 @@
-name: Build GNU
+# name: Build GNU
 
-on: [push, pull_request]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target:
-          - i686-pc-windows-gnu
+# on: [push, pull_request]
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     strategy:
+#       matrix:
+#         target:
+#           - i686-pc-windows-gnu
     
-    steps:
-    - uses: actions/checkout@v4
+#     steps:
+#     - uses: actions/checkout@v4
     
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        # Make Rust compile to our target (defined in the matrix)
-        targets: ${{ matrix.target }}
+#     - name: Install Rust
+#       uses: dtolnay/rust-toolchain@stable
+#       with:
+#         # Make Rust compile to our target (defined in the matrix)
+#         targets: ${{ matrix.target }}
 
-    - name: Install Cross
-      run: cargo install cross --git https://github.com/cross-rs/cross
+#     - name: Install Cross
+#       run: cargo install cross --git https://github.com/cross-rs/cross
   
-    - name: Build
-      run: cross build --target ${{ matrix.target }} --release --verbose 
+#     - name: Build
+#       run: cross build --target ${{ matrix.target }} --release --verbose 
     
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: binary-${{ matrix.target }}
-        path: target/${{ matrix.target }}/release/
+#     - name: Upload Artifacts
+#       uses: actions/upload-artifact@v4
+#       with:
+#         name: binary-${{ matrix.target }}
+#         path: target/${{ matrix.target }}/release/
