@@ -1,111 +1,111 @@
-# .github/workflows/deploy.yml
-name: Release
+# # .github/workflows/deploy.yml
+# name: Release
 
-on:
-  push:
-    #   branches:
-    #     - 'main'
-    tags: [ "v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*" ]
-  workflow_dispatch:
-  repository_dispatch:
-    types: [ webhook ]
+# on:
+#   push:
+#     #   branches:
+#     #     - 'main'
+#     tags: [ "v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*" ]
+#   workflow_dispatch:
+#   repository_dispatch:
+#     types: [ webhook ]
 
-permissions:
-  contents: write
+# permissions:
+#   contents: write
 
-jobs:
-  build-and-upload:
-    name: Build and upload
-    runs-on: ${{ matrix.os }}
+# jobs:
+#   build-and-upload:
+#     name: Build and upload
+#     runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        # Only Windows x86_32 targets are enabled
-        include:
-          - build: win x86_32 msvc
-            os: windows-latest
-            target: i686-pc-windows-msvc
-          - build: win x86_32 gnu
-            os: windows-latest
-            target: i686-pc-windows-gnu
+#     strategy:
+#       matrix:
+#         # Only Windows x86_32 targets are enabled
+#         include:
+#           - build: win x86_32 msvc
+#             os: windows-latest
+#             target: i686-pc-windows-msvc
+#           - build: win x86_32 gnu
+#             os: windows-latest
+#             target: i686-pc-windows-gnu
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-      - name: Get the release version from the tag
-        shell: bash
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
-          # Replace slashes with dashes for non-tag refs (e.g., refs/heads/main)
-          VERSION="${VERSION//\//-}"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+#       - name: Get the release version from the tag
+#         shell: bash
+#         run: |
+#           VERSION="${GITHUB_REF#refs/tags/}"
+#           # Replace slashes with dashes for non-tag refs (e.g., refs/heads/main)
+#           VERSION="${VERSION//\//-}"
+#           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Install Rust
-        # Or @nightly if you want
-        uses: dtolnay/rust-toolchain@stable
-        # Arguments to pass in
-        with:
-          # Make Rust compile to our target (defined in the matrix)
-          targets: ${{ matrix.target }}
+#       - name: Install Rust
+#         # Or @nightly if you want
+#         uses: dtolnay/rust-toolchain@stable
+#         # Arguments to pass in
+#         with:
+#           # Make Rust compile to our target (defined in the matrix)
+#           targets: ${{ matrix.target }}
 
-      - name: Build
-        run: cargo build --verbose --release --target ${{ matrix.target }}
+#       - name: Build
+#         run: cargo build --verbose --release --target ${{ matrix.target }}
 
-      - name: Build archive
-        shell: bash
-        run: |
-          # Replace with the name of your binary
-          binary_name="caesiumclt"
+#       - name: Build archive
+#         shell: bash
+#         run: |
+#           # Replace with the name of your binary
+#           binary_name="caesiumclt"
 
-          dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
-          mkdir "$dirname"
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            mv "target/${{ matrix.target }}/release/$binary_name.exe" "$dirname"
-          else
-            mv "target/${{ matrix.target }}/release/$binary_name" "$dirname"
-          fi
+#           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
+#           mkdir "$dirname"
+#           if [ "${{ matrix.os }}" = "windows-latest" ]; then
+#             mv "target/${{ matrix.target }}/release/$binary_name.exe" "$dirname"
+#           else
+#             mv "target/${{ matrix.target }}/release/$binary_name" "$dirname"
+#           fi
 
-          # Include license and readme in the archive
-          if [ -f LICENSE.md ]; then cp LICENSE.md "$dirname/"; fi
-          if [ -f README.md ]; then cp README.md "$dirname/"; fi
+#           # Include license and readme in the archive
+#           if [ -f LICENSE.md ]; then cp LICENSE.md "$dirname/"; fi
+#           if [ -f README.md ]; then cp README.md "$dirname/"; fi
 
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            7z a "$dirname.zip" "$dirname"
-            echo "ASSET=$dirname.zip" >> $GITHUB_ENV
-          else
-            tar -czf "$dirname.tar.gz" "$dirname"
-            echo "ASSET=$dirname.tar.gz" >> $GITHUB_ENV
-          fi
+#           if [ "${{ matrix.os }}" = "windows-latest" ]; then
+#             7z a "$dirname.zip" "$dirname"
+#             echo "ASSET=$dirname.zip" >> $GITHUB_ENV
+#           else
+#             tar -czf "$dirname.tar.gz" "$dirname"
+#             echo "ASSET=$dirname.tar.gz" >> $GITHUB_ENV
+#           fi
 
-      # Create/update the GitHub Release with a user PAT (so release event triggers)
-      # https://github.com/softprops/action-gh-release
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ secrets.RELEASE_TOKEN || github.token }}
-          tag_name: ${{ env.VERSION }}
-          files: |
-            ${{ env.ASSET }}
-          # body_path: ''
-          body: "|Arch|Filename|
-          |:--: |:--:|
-          |Windows x86_32 MSVC| caesiumclt-v*-i686-pc-windows-msvc.zip|
-          |Windows x86_32 GNU| caesiumclt-v*-i686-pc-windows-gnu.zip|
-          "
+#       # Create/update the GitHub Release with a user PAT (so release event triggers)
+#       # https://github.com/softprops/action-gh-release
+#       - name: Release
+#         uses: softprops/action-gh-release@v2
+#         with:
+#           token: ${{ secrets.RELEASE_TOKEN || github.token }}
+#           tag_name: ${{ env.VERSION }}
+#           files: |
+#             ${{ env.ASSET }}
+#           # body_path: ''
+#           body: "|Arch|Filename|
+#           |:--: |:--:|
+#           |Windows x86_32 MSVC| caesiumclt-v*-i686-pc-windows-msvc.zip|
+#           |Windows x86_32 GNU| caesiumclt-v*-i686-pc-windows-gnu.zip|
+#           "
 
-      - name: Upload Artifact 🚀
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+#       - name: Upload Artifact 🚀
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: ${{ env.ASSET }}
+#           path: ${{ env.ASSET }}
 
-      - name: Upload binaries to release ☕
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.RELEASE_TOKEN || github.token }}
-          file: ${{ env.ASSET }}
-          asset_name: ${{ env.ASSET }}
-          tag: ${{ env.VERSION }}
-          overwrite: true
-          body: "Generated by Github Actions"
+#       - name: Upload binaries to release ☕
+#         uses: svenstaro/upload-release-action@v2
+#         with:
+#           repo_token: ${{ secrets.RELEASE_TOKEN || github.token }}
+#           file: ${{ env.ASSET }}
+#           asset_name: ${{ env.ASSET }}
+#           tag: ${{ env.VERSION }}
+#           overwrite: true
+#           body: "Generated by Github Actions"
