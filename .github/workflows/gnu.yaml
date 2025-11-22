@@ -8,7 +8,7 @@ jobs:
       matrix:
         target:
           # - i686-win7-windows-gnu
-          - stable-x86_64-pc-windows-gnu
+          - x86_64-pc-windows-gnu
     
     steps:
     - uses: actions/checkout@v4
