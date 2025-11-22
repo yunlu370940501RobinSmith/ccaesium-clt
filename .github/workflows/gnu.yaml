@@ -7,7 +7,8 @@ jobs:
     strategy:
       matrix:
         target:
-          - i686-win7-windows-gnu
+          # - i686-win7-windows-gnu
+          - stable-x86_64-pc-windows-gnu
     
     steps:
     - uses: actions/checkout@v4
@@ -16,7 +17,7 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         # Make Rust compile to our target (defined in the matrix)
-        targets: i686-w64-mingw32-gcc
+        targets: stable-x86_64-pc-windows-gnu
 
     - name: Install Cross
       run: cargo install cross --git https://github.com/cross-rs/cross
